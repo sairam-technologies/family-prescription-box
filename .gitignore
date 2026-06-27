@@ -1,8 +1,6 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
+# Dependencies
+node_modules/
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -10,32 +8,70 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
+# Environment variables (never commit secrets)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
 
-# next.js
-/.next/
-/out/
+# Keep the example env file for documentation
+!.env.example
 
-# production
-/build
+# Next.js
+.next/
+out/
+next-env.d.ts
 
-# misc
+# Production / build output
+build/
+dist/
+
+# Prisma generated client (regenerated via `prisma generate` / postinstall)
+src/generated/
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+
+# Turbo / tooling caches
+.turbo/
+.swc/
+
+# Vercel
+.vercel/
+
+# TypeScript
+*.tsbuildinfo
+
+# OS files
 .DS_Store
-*.pem
+Thumbs.db
 
-# debug
+# Editor / IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+*~
+
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*.log
 
-# env files (can opt-in for committing if needed)
-.env*
+# Certificates / keys
+*.pem
+*.key
 
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Misc
+.cache/
+tmp/
+temp/
