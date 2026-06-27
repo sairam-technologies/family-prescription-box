@@ -87,7 +87,10 @@ export default async function MemberPage({
                 prescriptionDate={rx.prescriptionDate?.toISOString()}
                 scanStatus={rx.scanStatus}
                 memberName={member.name}
-                medicineCount={rx.medicines.length}
+                medicines={rx.medicines.map((med) => ({
+                  id: med.id,
+                  name: med.name,
+                }))}
               />
             ))
           )}

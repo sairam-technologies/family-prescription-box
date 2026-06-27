@@ -111,7 +111,10 @@ export default async function DashboardPage() {
                     prescriptionDate={rx.prescriptionDate?.toISOString()}
                     scanStatus={rx.scanStatus}
                     memberName={rx.familyMember.name}
-                    medicineCount={rx.medicines.length}
+                    medicines={rx.medicines.map((med) => ({
+                      id: med.id,
+                      name: med.name,
+                    }))}
                   />
                 ))}
               </div>

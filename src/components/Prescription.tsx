@@ -36,7 +36,7 @@ interface PrescriptionListItemProps {
   prescriptionDate?: string | null;
   scanStatus: string;
   memberName: string;
-  medicineCount: number;
+  medicines: Array<{ id?: string; name: string }>;
 }
 
 export function PrescriptionListItem({
@@ -47,7 +47,7 @@ export function PrescriptionListItem({
   prescriptionDate,
   scanStatus,
   memberName,
-  medicineCount,
+  medicines,
 }: PrescriptionListItemProps) {
   const statusColors = {
     COMPLETED: "bg-green-100 text-green-700",
@@ -97,7 +97,20 @@ export function PrescriptionListItem({
               <Calendar className="h-3 w-3" />
               {formatDate(prescriptionDate)}
             </span>
-            <span>{medicineCount} medicines</span>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {medicines.length > 0 ? (
+              medicines.map((med, index) => (
+                <span
+                  key={med.id ?? `${med.name}-${index}`}
+                  className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700"
+                >
+                  {med.name}
+                </span>
+              ))
+            ) : (
+              <span className="text-xs text-slate-400">No medicines extracted</span>
+            )}
           </div>
         </div>
       </Card>
