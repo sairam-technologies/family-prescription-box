@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { AppShell } from "@/components/AppShell";
+import { ACCESS_DENIED_ERROR_CODE } from "@/lib/auth-access";
 
 export default async function DashboardLayout({
   children,
@@ -8,10 +10,19 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
-  if (!session?.user) redirect("/login");
+  if (!session?.user?.id) redirect("/login");
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { isApproved: true, family: { select: { name: true } } },
+  });
+
+  if (!user?.isApproved) {
+    redirect(`/login?error=${ACCESS_DENIED_ERROR_CODE}`);
+  }
 
   return (
-    <AppShell familyName={session.user.familyName}>
+    <AppShell familyName={user.family.name}>
       {children}
     </AppShell>
   );

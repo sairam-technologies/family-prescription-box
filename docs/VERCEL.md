@@ -8,7 +8,12 @@ Copy your local `.env` values to Vercel using one of the methods below.
 |----------|----------------|-------------------|
 | `DATABASE_URL` | Neon connection string | Same as local |
 | `AUTH_SECRET` | Your secret | Same as local |
-| `OPENAI_API_KEY` | Your OpenAI key | Same as local |
+| `AI_PROVIDER` | `gemini`, `openrouter`, `openai`, or `groq` | Same as local |
+| `GEMINI_API_KEY` | Google AI Studio API key | Same as local |
+| `GEMINI_MODEL` | Optional (default `gemini-2.5-flash`) | Same if set locally |
+| `OPENROUTER_API_KEY` | OpenRouter key (if using openrouter) | Same as local |
+| `OPENAI_API_KEY` | OpenAI key (if using openai) | Same as local |
+| `GROQ_API_KEY` | Groq key (if using groq) | Same as local |
 | `R2_ENDPOINT` | Cloudflare R2 endpoint | Same as local |
 | `R2_ACCESS_KEY_ID` | R2 access key | Same as local |
 | `R2_SECRET_ACCESS_KEY` | R2 secret key | Same as local |

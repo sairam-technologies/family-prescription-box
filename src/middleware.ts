@@ -33,5 +33,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // Skip /api so multipart uploads are not buffered/truncated by middleware (Next.js 16).
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/).*)"],
 };

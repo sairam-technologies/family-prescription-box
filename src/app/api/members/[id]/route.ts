@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionFamilyId, unauthorized, forbidden } from "@/lib/session";
+import { deletePrescriptionFilesFromR2 } from "@/lib/r2";
 
 export async function GET(
   _request: Request,
@@ -43,12 +44,16 @@ export async function DELETE(
 
   const member = await prisma.familyMember.findFirst({
     where: { id, familyId: user.familyId },
+    include: {
+      prescriptions: { select: { storageKey: true } },
+    },
   });
 
   if (!member) {
     return NextResponse.json({ error: "Member not found" }, { status: 404 });
   }
 
+  await deletePrescriptionFilesFromR2(member.prescriptions);
   await prisma.familyMember.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }

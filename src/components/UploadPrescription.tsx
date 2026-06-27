@@ -6,6 +6,7 @@ import { Upload, Loader2, Camera } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
+import { compressImageForUpload, isImageFile } from "@/lib/compress-image";
 
 interface Member {
   id: string;
@@ -36,8 +37,23 @@ export function UploadPrescription({
     setLoading(true);
     setError("");
 
+    let uploadFile = file;
+    try {
+      uploadFile = await compressImageForUpload(file);
+    } catch {
+      uploadFile = file;
+    }
+
+    if (uploadFile.size > 4 * 1024 * 1024) {
+      setError(
+        "Photo is too large after compression. Try a closer shot or lower camera quality."
+      );
+      setLoading(false);
+      return;
+    }
+
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", uploadFile);
     formData.append("memberId", memberId);
 
     try {
@@ -47,8 +63,16 @@ export function UploadPrescription({
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Upload failed");
+        let message = "Upload failed";
+        try {
+          const data = await res.json();
+          message = data.error || message;
+        } catch {
+          if (res.status === 413) {
+            message = "Photo is too large. Try again with a closer shot.";
+          }
+        }
+        throw new Error(message);
       }
 
       const prescription = await res.json();
@@ -64,8 +88,8 @@ export function UploadPrescription({
 
   function handleFile(file: File | null) {
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setError("Please upload an image file");
+    if (!isImageFile(file)) {
+      setError("Please upload an image file (JPEG, PNG, or HEIC)");
       return;
     }
     setPreview(URL.createObjectURL(file));

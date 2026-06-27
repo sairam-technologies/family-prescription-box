@@ -7,6 +7,10 @@ import { ArrowLeft, RefreshCw, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { MedicineList, PrescriptionMeta } from "@/components/Prescription";
 import { PrescriptionImage } from "@/components/PrescriptionImage";
+import type {
+  FamilyMedicineMatch,
+  MedicineValidation,
+} from "@/lib/ai/parse";
 
 interface PrescriptionDetailProps {
   prescription: {
@@ -18,6 +22,7 @@ interface PrescriptionDetailProps {
     diagnosis?: string | null;
     notes?: string | null;
     scanStatus: string;
+    rawAiResponse?: string | null;
     familyMember: {
       id: string;
       name: string;
@@ -38,11 +43,68 @@ export function PrescriptionDetail({ prescription }: PrescriptionDetailProps) {
   const router = useRouter();
   const [scanning, setScanning] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [scanError, setScanError] = useState("");
+
+  const savedScanError = (() => {
+    if (!prescription.rawAiResponse) return null;
+    try {
+      const parsed = JSON.parse(prescription.rawAiResponse) as {
+        error?: string;
+      };
+      return parsed.error ?? null;
+    } catch {
+      return null;
+    }
+  })();
+
+  const medicineTranscription = (() => {
+    if (!prescription.rawAiResponse) return null;
+    try {
+      const parsed = JSON.parse(prescription.rawAiResponse) as {
+        medicineTranscription?: string;
+      };
+      return parsed.medicineTranscription?.trim() || null;
+    } catch {
+      return null;
+    }
+  })();
+
+  const scanInsights = (() => {
+    if (!prescription.rawAiResponse) {
+      return {
+        validations: [] as MedicineValidation[],
+        familyMatches: [] as FamilyMedicineMatch[],
+      };
+    }
+    try {
+      const parsed = JSON.parse(prescription.rawAiResponse) as {
+        medicineValidations?: MedicineValidation[];
+        familyMatches?: FamilyMedicineMatch[];
+      };
+      return {
+        validations: parsed.medicineValidations ?? [],
+        familyMatches: parsed.familyMatches ?? [],
+      };
+    } catch {
+      return {
+        validations: [] as MedicineValidation[],
+        familyMatches: [] as FamilyMedicineMatch[],
+      };
+    }
+  })();
 
   async function rescan() {
     setScanning(true);
+    setScanError("");
     try {
-      await fetch(`/api/prescriptions/${prescription.id}`, { method: "POST" });
+      const res = await fetch(`/api/prescriptions/${prescription.id}`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setScanError(data.error || "Re-scan failed");
+        return;
+      }
       router.refresh();
     } finally {
       setScanning(false);
@@ -120,6 +182,15 @@ export function PrescriptionDetail({ prescription }: PrescriptionDetailProps) {
         </div>
 
         <div className="space-y-6">
+          {(prescription.scanStatus === "FAILED" || scanError || savedScanError) && (
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-5">
+              <p className="text-sm font-medium text-red-800">AI scan failed</p>
+              <p className="mt-1 text-sm text-red-700">
+                {scanError || savedScanError || "Could not extract prescription details."}
+              </p>
+            </div>
+          )}
+
           <PrescriptionMeta
             doctorName={prescription.doctorName}
             clinicName={prescription.clinicName}
@@ -141,7 +212,23 @@ export function PrescriptionDetail({ prescription }: PrescriptionDetailProps) {
             <h2 className="mb-4 text-lg font-semibold text-slate-900">
               Medicines ({prescription.medicines.length})
             </h2>
-            <MedicineList medicines={prescription.medicines} />
+            {medicineTranscription && (
+              <details className="mb-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <summary className="cursor-pointer text-sm font-medium text-slate-700">
+                  View raw text read from prescription
+                </summary>
+                <pre className="mt-3 whitespace-pre-wrap text-sm text-slate-600">
+                  {medicineTranscription}
+                </pre>
+              </details>
+            )}
+            <MedicineList
+              medicines={prescription.medicines}
+              validations={scanInsights.validations}
+              familyMatches={scanInsights.familyMatches}
+              prescriptionId={prescription.id}
+              editable
+            />
           </div>
         </div>
       </div>

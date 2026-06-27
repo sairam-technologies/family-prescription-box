@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionFamilyId, unauthorized } from "@/lib/session";
-import {
-  buildPrescriptionKey,
-  getFromR2,
-  uploadToR2,
-} from "@/lib/r2";
-import { scanPrescriptionImage } from "@/lib/ai";
+import { buildPrescriptionKey, uploadToR2 } from "@/lib/r2";
+import { scanPrescriptionImage, formatGeminiError } from "@/lib/ai";
+import { attachFamilyMatches } from "@/lib/scan-enrichment";
+
+export const maxDuration = 60;
 
 export async function GET(request: Request) {
   const user = await getSessionFamilyId();
@@ -81,21 +80,26 @@ export async function POST(request: Request) {
     try {
       const dataUrl = `data:${file.type || "image/jpeg"};base64,${buffer.toString("base64")}`;
       const scanned = await scanPrescriptionImage(dataUrl);
+      const enriched = await attachFamilyMatches(
+        scanned,
+        user.familyId,
+        prescription.id
+      );
 
       const updated = await prisma.prescription.update({
         where: { id: prescription.id },
         data: {
-          doctorName: scanned.doctorName ?? null,
-          clinicName: scanned.clinicName ?? null,
-          prescriptionDate: scanned.prescriptionDate
-            ? new Date(scanned.prescriptionDate)
+          doctorName: enriched.doctorName ?? null,
+          clinicName: enriched.clinicName ?? null,
+          prescriptionDate: enriched.prescriptionDate
+            ? new Date(enriched.prescriptionDate)
             : null,
-          diagnosis: scanned.diagnosis ?? null,
-          notes: scanned.notes ?? null,
-          rawAiResponse: JSON.stringify(scanned),
+          diagnosis: enriched.diagnosis ?? null,
+          notes: enriched.notes ?? null,
+          rawAiResponse: JSON.stringify(enriched),
           scanStatus: "COMPLETED",
           medicines: {
-            create: scanned.medicines.map((med) => ({
+            create: enriched.medicines.map((med) => ({
               name: med.name,
               dosage: med.dosage ?? null,
               frequency: med.frequency ?? null,
@@ -115,7 +119,12 @@ export async function POST(request: Request) {
       console.error("AI scan error:", scanError);
       const failed = await prisma.prescription.update({
         where: { id: prescription.id },
-        data: { scanStatus: "FAILED" },
+        data: {
+          scanStatus: "FAILED",
+          rawAiResponse: JSON.stringify({
+            error: formatGeminiError(scanError),
+          }),
+        },
         include: {
           medicines: true,
           familyMember: { select: { id: true, name: true } },
@@ -125,6 +134,20 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error("Upload error:", error);
+
+    const message =
+      error instanceof Error ? error.message : "Failed to upload prescription";
+
+    if (message.includes("R2 storage is not configured")) {
+      return NextResponse.json(
+        {
+          error:
+            "File storage is not configured on the server. Add R2 environment variables in Vercel.",
+        },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json(
       { error: "Failed to upload prescription" },
       { status: 500 }

@@ -2,6 +2,7 @@ import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
+  DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -100,6 +101,41 @@ export async function getSignedR2Url(
     client,
     new GetObjectCommand({ Bucket: bucket, Key: key }),
     { expiresIn }
+  );
+}
+
+export async function deleteFromR2(key: string): Promise<void> {
+  const client = getS3Client();
+  const { bucket } = getR2Config();
+
+  await client.send(
+    new DeleteObjectCommand({
+      Bucket: bucket,
+      Key: key,
+    })
+  );
+}
+
+/** Delete an R2 object if present; logs and continues on failure. */
+export async function deleteFromR2Safe(
+  key: string | null | undefined
+): Promise<void> {
+  if (!key) return;
+
+  try {
+    await deleteFromR2(key);
+  } catch (error) {
+    console.error(`Failed to delete R2 object ${key}:`, error);
+  }
+}
+
+export async function deletePrescriptionFilesFromR2(
+  prescriptions: Array<{ storageKey: string | null }>
+): Promise<void> {
+  await Promise.all(
+    prescriptions.map((prescription) =>
+      deleteFromR2Safe(prescription.storageKey)
+    )
   );
 }
 

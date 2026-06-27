@@ -7,7 +7,7 @@ A Vercel-ready web app for families to upload prescription photos, extract medic
 - **Shared family dashboard** — Multiple users join one family via invite code; everyone sees the same data
 - **Family members** — Add profiles for each person (name, relationship, DOB)
 - **Prescription upload** — Photo upload with drag-and-drop or camera capture
-- **AI scanning** — OpenAI Vision extracts medicines, doctor name, clinic, date, and diagnosis
+- **AI scanning** — Google Gemini extracts medicines from prescription photos
 - **Global search** — Search medicines, doctors, diagnoses, and family members across the whole family
 
 ## Tech Stack
@@ -15,7 +15,7 @@ A Vercel-ready web app for families to upload prescription photos, extract medic
 - **Next.js 16** (App Router)
 - **PostgreSQL** + Prisma
 - **NextAuth** (credentials)
-- **OpenAI GPT-4o-mini** (vision)
+- **Google Gemini** (default), or OpenRouter / OpenAI / Groq
 - **Cloudflare R2** (S3-compatible image storage)
 
 ## Quick Start
@@ -39,7 +39,12 @@ Fill in:
 |----------|-------------|
 | `DATABASE_URL` | Neon PostgreSQL connection string |
 | `AUTH_SECRET` | Random secret: `openssl rand -base64 32` |
-| `OPENAI_API_KEY` | From [OpenAI](https://platform.openai.com) |
+| `AI_PROVIDER` | `gemini` (default), `openrouter`, `openai`, or `groq` |
+| `GEMINI_API_KEY` | From [Google AI Studio](https://aistudio.google.com/apikey) |
+| `GEMINI_MODEL` | Optional — `gemini-2.5-flash` (default) |
+| `OPENROUTER_API_KEY` | From [OpenRouter](https://openrouter.ai/keys) if using `openrouter` |
+| `OPENAI_API_KEY` | From [OpenAI](https://platform.openai.com/api-keys) if using `openai` |
+| `GROQ_API_KEY` | From [Groq](https://console.groq.com/keys) if using `groq` |
 | `R2_ENDPOINT` | Cloudflare R2 S3 endpoint |
 | `R2_ACCESS_KEY_ID` | R2 API token → S3 credentials |
 | `R2_SECRET_ACCESS_KEY` | R2 secret access key |
@@ -59,6 +64,31 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## User access control
+
+New accounts are **not approved by default**. Users cannot sign in until you enable them in the database.
+
+1. Open Prisma Studio or your SQL client:
+   ```bash
+   npm run db:studio
+   ```
+2. Open the **User** table
+3. Set `isApproved` to `true` for each user who should have access
+
+Or run SQL in Neon:
+
+```sql
+UPDATE "User" SET "isApproved" = true WHERE email = 'you@example.com';
+```
+
+Unapproved users see: **Contact the administrator to get access**
+
+To approve all existing users after adding this column:
+
+```sql
+UPDATE "User" SET "isApproved" = true;
+```
 
 ## Deploy to Vercel
 
@@ -91,7 +121,7 @@ npx prisma db push
 
 ## AI scanning
 
-When you upload a prescription image, the app sends it to OpenAI's vision model which returns structured JSON:
+When you upload a prescription image, the app sends it to Google Gemini (by default) which returns structured JSON:
 
 - Doctor name, clinic, date
 - Diagnosis and notes

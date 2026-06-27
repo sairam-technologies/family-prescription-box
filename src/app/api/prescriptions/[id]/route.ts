@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionFamilyId, unauthorized } from "@/lib/session";
-import { getFromR2 } from "@/lib/r2";
-import { scanPrescriptionImage } from "@/lib/ai";
+import { getFromR2, deleteFromR2Safe } from "@/lib/r2";
+import { scanPrescriptionImage, formatGeminiError } from "@/lib/ai";
+import { attachFamilyMatches } from "@/lib/scan-enrichment";
+
+export const maxDuration = 60;
 
 export async function GET(
   _request: Request,
@@ -70,23 +73,24 @@ export async function POST(
     }
 
     const scanned = await scanPrescriptionImage(scanUrl);
+    const enriched = await attachFamilyMatches(scanned, user.familyId, id);
 
     await prisma.medicine.deleteMany({ where: { prescriptionId: id } });
 
     const updated = await prisma.prescription.update({
       where: { id },
       data: {
-        doctorName: scanned.doctorName ?? null,
-        clinicName: scanned.clinicName ?? null,
-        prescriptionDate: scanned.prescriptionDate
-          ? new Date(scanned.prescriptionDate)
+        doctorName: enriched.doctorName ?? null,
+        clinicName: enriched.clinicName ?? null,
+        prescriptionDate: enriched.prescriptionDate
+          ? new Date(enriched.prescriptionDate)
           : null,
-        diagnosis: scanned.diagnosis ?? null,
-        notes: scanned.notes ?? null,
-        rawAiResponse: JSON.stringify(scanned),
+        diagnosis: enriched.diagnosis ?? null,
+        notes: enriched.notes ?? null,
+        rawAiResponse: JSON.stringify(enriched),
         scanStatus: "COMPLETED",
         medicines: {
-          create: scanned.medicines.map((med) => ({
+          create: enriched.medicines.map((med) => ({
             name: med.name,
             dosage: med.dosage ?? null,
             frequency: med.frequency ?? null,
@@ -106,10 +110,13 @@ export async function POST(
     console.error("Rescan error:", error);
     await prisma.prescription.update({
       where: { id },
-      data: { scanStatus: "FAILED" },
+      data: {
+        scanStatus: "FAILED",
+        rawAiResponse: JSON.stringify({ error: formatGeminiError(error) }),
+      },
     });
     return NextResponse.json(
-      { error: "Failed to scan prescription" },
+      { error: formatGeminiError(error) },
       { status: 500 }
     );
   }
@@ -138,6 +145,7 @@ export async function DELETE(
     );
   }
 
+  await deleteFromR2Safe(prescription.storageKey);
   await prisma.prescription.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }

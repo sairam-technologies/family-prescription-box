@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Pill } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -16,7 +15,6 @@ export default function RegisterPage() {
   const [mode, setMode] = useState<"create" | "join">("create");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -46,57 +44,14 @@ export default function RegisterPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Registration failed");
 
-      if (mode === "create") {
-        setInviteCode(data.inviteCode);
-      }
-
-      const signInResult = await signIn("credentials", {
-        email: form.email,
-        password: form.password,
-        redirect: false,
-      });
-
-      if (signInResult?.error) {
-        throw new Error("Account created but sign in failed");
-      }
-
-      if (mode === "create" && data.inviteCode) {
-        setInviteCode(data.inviteCode);
-        setLoading(false);
-        return;
-      }
-
-      router.push("/dashboard");
+      router.push(
+        `/login?registered=1${mode === "create" && data.inviteCode ? `&inviteCode=${encodeURIComponent(data.inviteCode)}` : ""}`
+      );
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setLoading(false);
     }
-  }
-
-  if (inviteCode) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-teal-50 to-white px-4">
-        <Card className="w-full max-w-md text-center">
-          <h2 className="text-xl font-bold text-slate-900">
-            Family account created!
-          </h2>
-          <p className="mt-2 text-slate-600">
-            Share this invite code with family members so they can join and see
-            the same dashboard:
-          </p>
-          <p className="mt-4 font-mono text-3xl font-bold text-teal-700">
-            {inviteCode}
-          </p>
-          <Button
-            className="mt-6 w-full"
-            onClick={() => router.push("/dashboard")}
-          >
-            Go to dashboard
-          </Button>
-        </Card>
-      </div>
-    );
   }
 
   return (

@@ -73,7 +73,14 @@ set_env_var() {
 VARS=(
   DATABASE_URL
   AUTH_SECRET
+  AI_PROVIDER
+  GEMINI_API_KEY
+  GEMINI_MODEL
+  OPENROUTER_API_KEY
+  OPENROUTER_MODEL
   OPENAI_API_KEY
+  OPENAI_MODEL
+  GROQ_API_KEY
   R2_ENDPOINT
   R2_ACCESS_KEY_ID
   R2_SECRET_ACCESS_KEY
@@ -94,6 +101,18 @@ for target in "${ENVIRONMENTS[@]}"; do
 
   if [[ -n "${R2_PUBLIC_URL:-}" ]]; then
     set_env_var "R2_PUBLIC_URL" "$R2_PUBLIC_URL" "$target"
+  fi
+
+  if [[ -n "${OPENROUTER_TEXT_MODEL:-}" ]]; then
+    set_env_var "OPENROUTER_TEXT_MODEL" "$OPENROUTER_TEXT_MODEL" "$target"
+  fi
+
+  if [[ -n "${GROQ_MODEL:-}" ]]; then
+    set_env_var "GROQ_MODEL" "$GROQ_MODEL" "$target"
+  fi
+
+  if [[ -n "${GROQ_TEXT_MODEL:-}" ]]; then
+    set_env_var "GROQ_TEXT_MODEL" "$GROQ_TEXT_MODEL" "$target"
   fi
 
   set_env_var "AUTH_TRUST_HOST" "true" "$target"

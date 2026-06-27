@@ -1,25 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { Pill } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Card } from "@/components/ui/Card";
+import {
+  ACCESS_DENIED_ERROR_CODE,
+  ACCESS_DENIED_MESSAGE,
+} from "@/lib/auth-access";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [submitError, setSubmitError] = useState("");
   const [form, setForm] = useState({ email: "", password: "" });
+
+  const urlError =
+    searchParams.get("error") === ACCESS_DENIED_ERROR_CODE
+      ? ACCESS_DENIED_MESSAGE
+      : "";
+  const error = submitError || urlError;
+  const registered = searchParams.get("registered") === "1";
+  const inviteCode = searchParams.get("inviteCode");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setSubmitError("");
 
     const result = await signIn("credentials", {
       email: form.email,
@@ -28,7 +41,14 @@ export default function LoginPage() {
     });
 
     if (result?.error) {
-      setError("Invalid email or password");
+      if (
+        result.error === ACCESS_DENIED_ERROR_CODE ||
+        result.error === ACCESS_DENIED_MESSAGE
+      ) {
+        setSubmitError(ACCESS_DENIED_MESSAGE);
+      } else {
+        setSubmitError("Invalid email or password");
+      }
       setLoading(false);
       return;
     }
@@ -37,6 +57,62 @@ export default function LoginPage() {
     router.refresh();
   }
 
+  return (
+    <Card>
+      {registered && (
+        <div className="mb-4 rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm text-teal-900">
+          <p className="font-medium">Account created</p>
+          <p className="mt-1">
+            {ACCESS_DENIED_MESSAGE} before you can sign in.
+          </p>
+          {inviteCode && (
+            <p className="mt-3">
+              Family invite code:{" "}
+              <span className="font-mono text-base font-bold">{inviteCode}</span>
+            </p>
+          )}
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            placeholder="you@example.com"
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            placeholder="••••••••"
+            required
+          />
+        </div>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        <Button type="submit" disabled={loading} className="w-full">
+          {loading ? "Signing in..." : "Sign in"}
+        </Button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-slate-600">
+        Don&apos;t have an account?{" "}
+        <Link href="/register" className="font-medium text-teal-600 hover:underline">
+          Create one
+        </Link>
+      </p>
+    </Card>
+  );
+}
+
+export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-teal-50 to-white px-4">
       <div className="w-full max-w-md">
@@ -50,43 +126,9 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <Card>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="you@example.com"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                placeholder="••••••••"
-                required
-              />
-            </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            <Button type="submit" disabled={loading} className="w-full">
-              {loading ? "Signing in..." : "Sign in"}
-            </Button>
-          </form>
-
-          <p className="mt-6 text-center text-sm text-slate-600">
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="font-medium text-teal-600 hover:underline">
-              Create one
-            </Link>
-          </p>
-        </Card>
+        <Suspense fallback={<Card className="h-64 animate-pulse bg-slate-50" />}>
+          <LoginForm />
+        </Suspense>
       </div>
     </div>
   );

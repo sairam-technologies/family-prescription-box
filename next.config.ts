@@ -6,6 +6,9 @@ const r2PublicHost = process.env.R2_PUBLIC_URL
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  experimental: {
+    proxyClientMaxBodySize: "10mb",
+  },
   images: {
     remotePatterns: [
       ...(r2PublicHost
