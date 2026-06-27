@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Family {
+  id         String         @id @default(cuid())
+  name       String
+  inviteCode String         @unique
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  users      User[]
+  members    FamilyMember[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  isPrimary Boolean  @default(false)
+  familyId  String
+  family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FamilyMember {
+  id             String          @id @default(cuid())
+  name           String
+  relationship   String?
+  dateOfBirth    DateTime?
+  familyId       String
+  family         Family          @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  prescriptions  Prescription[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([familyId])
+}
+
+model Prescription {
+  id             String         @id @default(cuid())
+  familyMemberId String
+  familyMember   FamilyMember   @relation(fields: [familyMemberId], references: [id], onDelete: Cascade)
+  imageUrl       String
+  imageName      String?
+  storageKey     String?
+  doctorName     String?
+  clinicName     String?
+  prescriptionDate DateTime?
+  diagnosis      String?
+  notes          String?
+  rawAiResponse  String?
+  scanStatus     ScanStatus     @default(PENDING)
+  medicines      Medicine[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([familyMemberId])
+  @@index([doctorName])
+  @@index([prescriptionDate])
+}
+
+model Medicine {
+  id             String       @id @default(cuid())
+  prescriptionId String
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  name           String
+  dosage         String?
+  frequency      String?
+  duration       String?
+  instructions   String?
+  createdAt      DateTime     @default(now())
+
+  @@index([prescriptionId])
+  @@index([name])
+}
+
+enum ScanStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}

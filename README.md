@@ -1,36 +1,117 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RxBox — Family Prescription Manager
 
-## Getting Started
+A Vercel-ready web app for families to upload prescription photos, extract medicines with AI, and search across all family prescriptions from a shared dashboard.
 
-First, run the development server:
+## Features
+
+- **Shared family dashboard** — Multiple users join one family via invite code; everyone sees the same data
+- **Family members** — Add profiles for each person (name, relationship, DOB)
+- **Prescription upload** — Photo upload with drag-and-drop or camera capture
+- **AI scanning** — OpenAI Vision extracts medicines, doctor name, clinic, date, and diagnosis
+- **Global search** — Search medicines, doctors, diagnoses, and family members across the whole family
+
+## Tech Stack
+
+- **Next.js 16** (App Router)
+- **PostgreSQL** + Prisma
+- **NextAuth** (credentials)
+- **OpenAI GPT-4o-mini** (vision)
+- **Cloudflare R2** (S3-compatible image storage)
+
+## Quick Start
+
+### 1. Clone and install
+
+```bash
+cd family-prescription-box
+npm install
+```
+
+### 2. Set up environment
+
+```bash
+cp .env.example .env
+```
+
+Fill in:
+
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | Neon PostgreSQL connection string |
+| `AUTH_SECRET` | Random secret: `openssl rand -base64 32` |
+| `OPENAI_API_KEY` | From [OpenAI](https://platform.openai.com) |
+| `R2_ENDPOINT` | Cloudflare R2 S3 endpoint |
+| `R2_ACCESS_KEY_ID` | R2 API token → S3 credentials |
+| `R2_SECRET_ACCESS_KEY` | R2 secret access key |
+| `R2_BUCKET_NAME` | R2 bucket name (create in Cloudflare dashboard) |
+| `R2_PUBLIC_URL` | Optional public bucket URL (`*.r2.dev`) |
+
+### 3. Set up database
+
+```bash
+npx prisma db push
+```
+
+### 4. Run locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy to Vercel
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Push this repo to GitHub
+2. Import the project in [Vercel](https://vercel.com)
+3. **Add environment variables** — see [docs/VERCEL.md](docs/VERCEL.md) for the full list
 
-## Learn More
+   Quick sync from your local `.env`:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   npx vercel login
+   npx vercel link
+   npm run vercel:env -- https://your-app.vercel.app
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4. Create an R2 bucket named `rxbox-prescriptions` in Cloudflare (if not done)
+5. Deploy — Vercel runs `prisma generate` via `postinstall`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+After first deploy, push the database schema:
 
-## Deploy on Vercel
+```bash
+npx prisma db push
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## How family sharing works
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **First user** registers and creates a family → receives an **invite code**
+2. **Other family members** register using "Join family" with that code
+3. All users in the family share the same dashboard, members, and prescriptions
+
+## AI scanning
+
+When you upload a prescription image, the app sends it to OpenAI's vision model which returns structured JSON:
+
+- Doctor name, clinic, date
+- Diagnosis and notes
+- List of medicines with dosage, frequency, duration, instructions
+
+You can re-scan any prescription from its detail page.
+
+## Project structure
+
+```
+src/
+  app/
+    (app)/          # Authenticated routes
+    api/            # REST API
+    login/          # Auth pages
+  components/       # UI components
+  lib/              # Auth, Prisma, AI
+  generated/prisma/ # Prisma client
+```
+
+## License
+
+MIT
