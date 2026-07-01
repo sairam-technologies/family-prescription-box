@@ -3,10 +3,13 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { authConfig } from "@/lib/auth.config";
+import { syncAuthEnvUrls } from "@/lib/app-url";
 import {
   ACCESS_DENIED_ERROR_CODE,
   ACCESS_DENIED_MESSAGE,
 } from "@/lib/auth-access";
+
+syncAuthEnvUrls();
 
 class AccessDeniedError extends Error {
   constructor() {

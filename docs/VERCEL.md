@@ -25,7 +25,12 @@ Copy your local `.env` values to Vercel using one of the methods below.
 | `RESEND_API_KEY` | Optional — for password reset emails | Same as local |
 | `EMAIL_FROM` | Optional — e.g. `RxBox <noreply@yourdomain.com>` | Verified sender in Resend |
 
-> **Important:** On Vercel, `AUTH_URL` and `NEXTAUTH_URL` must be your **production domain**, not `localhost`.
+> **Important:** `AUTH_URL` and `NEXTAUTH_URL` must be your **site root only** — no path.
+>
+> - ✅ `https://family-prescription-box.vercel.app`
+> - ❌ `https://family-prescription-box.vercel.app/login`
+>
+> Also use your production domain on Vercel, not `localhost`.
 
 ---
 
