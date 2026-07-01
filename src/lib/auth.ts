@@ -54,6 +54,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           familyId: user.familyId,
           familyName: user.family.name,
           isPrimary: user.isPrimary,
+          isApproved: true,
         };
       },
     }),
@@ -66,24 +67,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.familyId = (user as { familyId?: string }).familyId;
         token.familyName = (user as { familyName?: string }).familyName;
         token.isPrimary = (user as { isPrimary?: boolean }).isPrimary ?? false;
+        token.isApproved = (user as { isApproved?: boolean }).isApproved ?? true;
       }
+
+      if (token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { isApproved: true, isPrimary: true },
+        });
+        token.isApproved = dbUser?.isApproved ?? false;
+        if (dbUser) {
+          token.isPrimary = dbUser.isPrimary;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
-      if (session.user && token.id) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { isPrimary: true, isApproved: true },
-        });
-
-        if (!dbUser?.isApproved) {
-          return session;
-        }
-
+      if (session.user && token.id && token.isApproved !== false) {
         session.user.id = token.id as string;
         session.user.familyId = token.familyId as string;
         session.user.familyName = token.familyName as string;
-        session.user.isPrimary = dbUser.isPrimary;
+        session.user.isPrimary = (token.isPrimary as boolean) ?? false;
       }
       return session;
     },

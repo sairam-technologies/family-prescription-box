@@ -7,6 +7,7 @@ import { UploadPrescription } from "@/components/UploadPrescription";
 import { PrescriptionListItem } from "@/components/Prescription";
 import { formatMemberSubtitle } from "@/lib/utils";
 import { DeleteMemberButton } from "@/components/DeleteMemberButton";
+import { RecordSectionLinks } from "@/components/MemberRecords";
 
 export default async function MemberPage({
   params,
@@ -25,6 +26,7 @@ export default async function MemberPage({
         include: { medicines: true },
         orderBy: { createdAt: "desc" },
       },
+      _count: { select: { documents: true, medicalReports: true } },
     },
   });
 
@@ -65,6 +67,14 @@ export default async function MemberPage({
             />
           )}
         </div>
+      </div>
+
+      <div className="mb-8">
+        <RecordSectionLinks
+          memberId={member.id}
+          documentCount={member._count.documents}
+          reportCount={member._count.medicalReports}
+        />
       </div>
 
       <div className="grid gap-8 lg:grid-cols-3">

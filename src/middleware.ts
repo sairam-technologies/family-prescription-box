@@ -8,12 +8,16 @@ export async function middleware(request: NextRequest) {
     secret: process.env.AUTH_SECRET,
   });
 
-  const isLoggedIn = !!token;
   const pathname = request.nextUrl.pathname;
   const isAuthPage =
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
     pathname === "/~offline";
+
+  // Legacy sessions may lack isApproved; treat missing as approved so existing
+  // users are not forced to re-login until the token is refreshed.
+  const canAccessApp =
+    !!token?.id && token.isApproved !== false;
 
   if (pathname.startsWith("/api/auth")) {
     return NextResponse.next();
@@ -23,15 +27,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (!isLoggedIn && !isAuthPage && pathname !== "/") {
+  if (!canAccessApp && !isAuthPage && pathname !== "/") {
     return NextResponse.redirect(new URL("/login", request.nextUrl));
   }
 
-  if (isLoggedIn && isAuthPage) {
+  if (canAccessApp && isAuthPage) {
     return NextResponse.redirect(new URL("/dashboard", request.nextUrl));
   }
 
-  if (isLoggedIn && pathname === "/") {
+  if (canAccessApp && pathname === "/") {
     return NextResponse.redirect(new URL("/dashboard", request.nextUrl));
   }
 

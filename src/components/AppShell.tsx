@@ -10,6 +10,8 @@ import {
   Pill,
   Menu,
   X,
+  FileText,
+  Activity,
 } from "lucide-react";
 import { useState } from "react";
 import { SearchBar } from "@/components/SearchBar";
@@ -18,6 +20,8 @@ import { Button } from "@/components/ui/Button";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/documents", label: "Documents", icon: FileText },
+  { href: "/medical-reports", label: "Reports", icon: Activity },
   { href: "/search", label: "Search", icon: Search },
 ];
 
@@ -52,7 +56,8 @@ export function AppShell({
           <nav className="hidden items-center gap-1 md:flex">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const active = pathname === item.href;
+              const active =
+                pathname === item.href || pathname.startsWith(`${item.href}/`);
               return (
                 <Link
                   key={item.href}

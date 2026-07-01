@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionFamilyId, unauthorized, forbidden } from "@/lib/session";
-import { deletePrescriptionFilesFromR2 } from "@/lib/r2";
+import {
+  deletePrescriptionFilesFromR2,
+  deleteStorageKeysFromR2,
+} from "@/lib/r2";
 
 export async function GET(
   _request: Request,
@@ -46,6 +49,8 @@ export async function DELETE(
     where: { id, familyId: user.familyId },
     include: {
       prescriptions: { select: { storageKey: true } },
+      documents: { select: { storageKey: true } },
+      medicalReports: { select: { storageKey: true } },
     },
   });
 
@@ -53,7 +58,11 @@ export async function DELETE(
     return NextResponse.json({ error: "Member not found" }, { status: 404 });
   }
 
-  await deletePrescriptionFilesFromR2(member.prescriptions);
+  await Promise.all([
+    deletePrescriptionFilesFromR2(member.prescriptions),
+    deleteStorageKeysFromR2(member.documents),
+    deleteStorageKeysFromR2(member.medicalReports),
+  ]);
   await prisma.familyMember.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }

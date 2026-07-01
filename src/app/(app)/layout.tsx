@@ -10,7 +10,9 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
-  if (!session?.user?.id) redirect("/login");
+  if (!session?.user?.id) {
+    redirect(`/api/auth/signout?callbackUrl=${encodeURIComponent("/login")}`);
+  }
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
@@ -18,7 +20,10 @@ export default async function DashboardLayout({
   });
 
   if (!user?.isApproved) {
-    redirect(`/login?error=${ACCESS_DENIED_ERROR_CODE}`);
+    const callbackUrl = `/login?error=${ACCESS_DENIED_ERROR_CODE}`;
+    redirect(
+      `/api/auth/signout?callbackUrl=${encodeURIComponent(callbackUrl)}`
+    );
   }
 
   return (

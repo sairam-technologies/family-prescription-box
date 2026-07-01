@@ -16,6 +16,7 @@ declare module "next-auth" {
     familyId?: string;
     familyName?: string;
     isPrimary?: boolean;
+    isApproved?: boolean;
   }
 }
 
@@ -25,5 +26,6 @@ declare module "next-auth/jwt" {
     familyId?: string;
     familyName?: string;
     isPrimary?: boolean;
+    isApproved?: boolean;
   }
 }

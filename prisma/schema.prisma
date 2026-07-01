@@ -31,15 +31,17 @@ model User {
 }
 
 model FamilyMember {
-  id             String          @id @default(cuid())
-  name           String
-  relationship   String?
-  dateOfBirth    DateTime?
-  familyId       String
-  family         Family          @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  prescriptions  Prescription[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id              String           @id @default(cuid())
+  name            String
+  relationship    String?
+  dateOfBirth     DateTime?
+  familyId        String
+  family          Family           @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  prescriptions   Prescription[]
+  documents       MemberDocument[]
+  medicalReports  MedicalReport[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
   @@index([familyId])
 }
@@ -87,4 +89,83 @@ enum ScanStatus {
   PROCESSING
   COMPLETED
   FAILED
+}
+
+enum DocumentCategory {
+  INVOICE
+  BILL
+  RECEIPT
+  INSURANCE
+  OTHER
+}
+
+enum MedicalReportType {
+  LAB
+  XRAY
+  MRI
+  ULTRASOUND
+  CT_SCAN
+  OTHER
+}
+
+enum ReportSeverity {
+  LOW
+  MODERATE
+  HIGH
+  CRITICAL
+  UNKNOWN
+}
+
+enum DoctorUrgency {
+  ROUTINE
+  SOON
+  URGENT
+  EMERGENCY
+  UNKNOWN
+}
+
+model MemberDocument {
+  id             String           @id @default(cuid())
+  familyMemberId String
+  familyMember   FamilyMember     @relation(fields: [familyMemberId], references: [id], onDelete: Cascade)
+  title          String?
+  category       DocumentCategory @default(OTHER)
+  fileUrl        String
+  fileName       String?
+  storageKey     String?
+  mimeType       String?
+  notes          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([familyMemberId])
+  @@index([category])
+}
+
+model MedicalReport {
+  id                     String            @id @default(cuid())
+  familyMemberId         String
+  familyMember           FamilyMember      @relation(fields: [familyMemberId], references: [id], onDelete: Cascade)
+  title                  String?
+  reportType             MedicalReportType @default(OTHER)
+  imageUrl               String
+  fileName               String?
+  storageKey             String?
+  scanStatus             ScanStatus        @default(PENDING)
+  summary                String?
+  findings               String?
+  severity               ReportSeverity?
+  urgency                DoctorUrgency?
+  doctorVisitRecommended Boolean?
+  doctorVisitReason      String?
+  dietarySuggestions     String?
+  lifestyleSuggestions   String?
+  rawAiResponse          String?
+  reportDate             DateTime?
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+
+  @@index([familyMemberId])
+  @@index([reportType])
+  @@index([severity])
 }

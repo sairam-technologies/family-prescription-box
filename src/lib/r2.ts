@@ -147,3 +147,29 @@ export function buildPrescriptionKey(
   const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
   return `prescriptions/${familyId}/${memberId}/${Date.now()}-${safeName}`;
 }
+
+export function buildMemberDocumentKey(
+  familyId: string,
+  memberId: string,
+  fileName: string
+): string {
+  const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `documents/${familyId}/${memberId}/${Date.now()}-${safeName}`;
+}
+
+export function buildMedicalReportKey(
+  familyId: string,
+  memberId: string,
+  fileName: string
+): string {
+  const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `medical-reports/${familyId}/${memberId}/${Date.now()}-${safeName}`;
+}
+
+export async function deleteStorageKeysFromR2(
+  items: Array<{ storageKey: string | null }>
+): Promise<void> {
+  await Promise.all(
+    items.map((item) => deleteFromR2Safe(item.storageKey))
+  );
+}
