@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getFromR2 } from "@/lib/r2";
 import { getSessionFamilyId, unauthorized } from "@/lib/session";
-import { prisma } from "@/lib/prisma";
+import { familyOwnsStorageKey } from "@/lib/family-file-access";
 
 export async function GET(
   _request: Request,
@@ -11,16 +11,10 @@ export async function GET(
   if (!user) return unauthorized();
 
   const { key: keyParts } = await params;
-  const storageKey = keyParts.join("/");
+  const storageKey = decodeURIComponent(keyParts.join("/"));
 
-  const prescription = await prisma.prescription.findFirst({
-    where: {
-      storageKey,
-      familyMember: { familyId: user.familyId },
-    },
-  });
-
-  if (!prescription) {
+  const allowed = await familyOwnsStorageKey(storageKey, user.familyId);
+  if (!allowed) {
     return NextResponse.json({ error: "File not found" }, { status: 404 });
   }
 

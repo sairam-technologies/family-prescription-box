@@ -15,7 +15,11 @@ export function PrescriptionImage({
   sizes?: string;
   priority?: boolean;
 }) {
-  if (src.startsWith("data:") || src.startsWith("/api/files")) {
+  if (
+    src.startsWith("data:") ||
+    src.startsWith("/api/files") ||
+    src.includes("/api/files/")
+  ) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
