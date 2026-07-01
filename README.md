@@ -65,6 +65,17 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Install as an app (PWA)
+
+RxBox is a **Progressive Web App**. On your phone:
+
+- **Android (Chrome):** open the site → menu → **Install app** / **Add to Home screen**
+- **iPhone (Safari):** Share → **Add to Home Screen**
+
+The installed app opens full-screen from your home screen, caches pages for faster loads, and shows an offline screen when there is no connection.
+
+Service workers are enabled in **production** only (`npm run build && npm start`). They are disabled during `npm run dev`.
+
 ## User access control
 
 New accounts are **not approved by default**. Users cannot sign in until you enable them in the database.
@@ -89,6 +100,24 @@ To approve all existing users after adding this column:
 ```sql
 UPDATE "User" SET "isApproved" = true;
 ```
+
+## WhatsApp invite messages (automatic)
+
+To send family invites **without opening WhatsApp**, connect the [WhatsApp Business Cloud API](https://developers.facebook.com/docs/whatsapp/cloud-api):
+
+1. Create a Meta app with WhatsApp and get a **Phone Number ID** + **Access Token**
+2. Create and approve a message template named `family_invite` with body:
+   ```
+   Join {{1}} on RxBox (Family Prescription Manager). Create your account here: {{2}}
+   ```
+3. Add to `.env` (and Vercel):
+   ```env
+   WHATSAPP_ACCESS_TOKEN="your-token"
+   WHATSAPP_PHONE_NUMBER_ID="your-phone-number-id"
+   WHATSAPP_INVITE_TEMPLATE="family_invite"
+   ```
+
+Dashboard **Send invite** then delivers the message directly to the number entered.
 
 ## Deploy to Vercel
 

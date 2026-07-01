@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getAppBaseUrl } from "@/lib/app-url";
 import { redirect } from "next/navigation";
 import { DashboardHeader, MemberCard } from "@/components/Dashboard";
 import { AddMemberForm } from "@/components/AddMemberForm";
@@ -44,11 +45,14 @@ export default async function DashboardPage() {
     },
   });
 
+  const appBaseUrl = await getAppBaseUrl();
+
   return (
     <div>
       <DashboardHeader
         familyName={family.name}
         inviteCode={family.inviteCode}
+        appBaseUrl={appBaseUrl}
         userName={session.user.name}
         isPrimary={session.user.isPrimary}
         stats={{

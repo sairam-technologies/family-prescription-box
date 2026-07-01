@@ -23,6 +23,8 @@ node_modules/
 .next/
 out/
 next-env.d.ts
+public/sw.js
+public/sw.js.map
 
 # Production / build output
 build/

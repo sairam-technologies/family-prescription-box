@@ -11,9 +11,15 @@ export async function middleware(request: NextRequest) {
   const isLoggedIn = !!token;
   const pathname = request.nextUrl.pathname;
   const isAuthPage =
-    pathname.startsWith("/login") || pathname.startsWith("/register");
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname === "/~offline";
 
   if (pathname.startsWith("/api/auth")) {
+    return NextResponse.next();
+  }
+
+  if (pathname === "/sw.js" || pathname === "/manifest.webmanifest") {
     return NextResponse.next();
   }
 
@@ -34,5 +40,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   // Skip /api so multipart uploads are not buffered/truncated by middleware (Next.js 16).
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|pwa-icon|apple-icon|icon|api/).*)",
+  ],
 };
