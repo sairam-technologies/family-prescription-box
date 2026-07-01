@@ -18,11 +18,16 @@ const serwist = new Serwist({
   navigationPreload: true,
   runtimeCaching: [
     {
-      // Avoid caching auth redirects on mobile PWA (causes "too many redirects").
       matcher({ request, url }) {
         if (request.mode !== "navigate") return false;
         const publicPaths = ["/", "/~offline"];
         return !publicPaths.includes(url.pathname);
+      },
+      handler: new NetworkOnly(),
+    },
+    {
+      matcher({ url }) {
+        return url.pathname.startsWith("/api/auth");
       },
       handler: new NetworkOnly(),
     },

@@ -30,8 +30,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
+        const email = (credentials.email as string).trim().toLowerCase();
+
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
+          where: { email },
           include: { family: true },
         });
 
@@ -68,6 +70,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.familyName = (user as { familyName?: string }).familyName;
         token.isPrimary = (user as { isPrimary?: boolean }).isPrimary ?? false;
         token.isApproved = (user as { isApproved?: boolean }).isApproved ?? true;
+        return token;
       }
 
       if (token.id) {
@@ -75,8 +78,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: { id: token.id as string },
           select: { isApproved: true, isPrimary: true },
         });
-        token.isApproved = dbUser?.isApproved ?? false;
         if (dbUser) {
+          token.isApproved = dbUser.isApproved;
           token.isPrimary = dbUser.isPrimary;
         }
       }

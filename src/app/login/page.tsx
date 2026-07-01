@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Pill } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -16,7 +16,6 @@ import {
 } from "@/lib/auth-access";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -36,27 +35,36 @@ function LoginForm() {
     setLoading(true);
     setSubmitError("");
 
-    const result = await signIn("credentials", {
-      email: form.email,
-      password: form.password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn("credentials", {
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      if (
-        result.error === ACCESS_DENIED_ERROR_CODE ||
-        result.error === ACCESS_DENIED_MESSAGE
-      ) {
-        setSubmitError(ACCESS_DENIED_MESSAGE);
-      } else {
-        setSubmitError("Invalid email or password");
+      if (result?.error) {
+        if (
+          result.error === ACCESS_DENIED_ERROR_CODE ||
+          result.error === ACCESS_DENIED_MESSAGE
+        ) {
+          setSubmitError(ACCESS_DENIED_MESSAGE);
+        } else {
+          setSubmitError("Invalid email or password");
+        }
+        return;
       }
-      setLoading(false);
-      return;
-    }
 
-    router.push("/dashboard");
-    router.refresh();
+      if (!result?.ok) {
+        setSubmitError("Sign in failed. Please try again.");
+        return;
+      }
+
+      window.location.assign("/dashboard");
+    } catch {
+      setSubmitError("Something went wrong. Check your connection and try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
