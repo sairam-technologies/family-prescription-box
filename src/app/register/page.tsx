@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Pill } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Label } from "@/components/ui/Label";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
@@ -118,9 +119,8 @@ function RegisterForm() {
           </div>
           <div>
             <Label htmlFor="password">Password</Label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               value={form.password}
               onChange={(e) =>
                 setForm({ ...form, password: e.target.value })

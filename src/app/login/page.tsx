@@ -7,6 +7,7 @@ import { signIn } from "next-auth/react";
 import { Pill } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Label } from "@/components/ui/Label";
 import { Card } from "@/components/ui/Card";
 import {
@@ -27,6 +28,7 @@ function LoginForm() {
       : "";
   const error = submitError || urlError;
   const registered = searchParams.get("registered") === "1";
+  const passwordReset = searchParams.get("reset") === "1";
   const inviteCode = searchParams.get("inviteCode");
 
   async function handleSubmit(e: React.FormEvent) {
@@ -73,6 +75,12 @@ function LoginForm() {
           )}
         </div>
       )}
+      {passwordReset && (
+        <div className="mb-4 rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm text-teal-900">
+          <p className="font-medium">Password updated</p>
+          <p className="mt-1">Sign in with your new password.</p>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <Label htmlFor="email">Email</Label>
@@ -86,10 +94,17 @@ function LoginForm() {
           />
         </div>
         <div>
-          <Label htmlFor="password">Password</Label>
-          <Input
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
+            <Link
+              href="/forgot-password"
+              className="text-sm font-medium text-teal-600 hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
+          <PasswordInput
             id="password"
-            type="password"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             placeholder="••••••••"

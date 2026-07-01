@@ -12,6 +12,8 @@ export async function middleware(request: NextRequest) {
   const isAuthPage =
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
+    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/reset-password") ||
     pathname === "/~offline";
 
   // Legacy sessions may lack isApproved; treat missing as approved so existing
@@ -31,7 +33,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.nextUrl));
   }
 
-  if (canAccessApp && isAuthPage) {
+  if (canAccessApp && isAuthPage && !pathname.startsWith("/reset-password")) {
     return NextResponse.redirect(new URL("/dashboard", request.nextUrl));
   }
 

@@ -22,6 +22,8 @@ Copy your local `.env` values to Vercel using one of the methods below.
 | `AUTH_TRUST_HOST` | `true` | `true` |
 | `AUTH_URL` | `http://localhost:3000` | `https://your-app.vercel.app` |
 | `NEXTAUTH_URL` | `http://localhost:3000` | `https://your-app.vercel.app` |
+| `RESEND_API_KEY` | Optional — for password reset emails | Same as local |
+| `EMAIL_FROM` | Optional — e.g. `RxBox <noreply@yourdomain.com>` | Verified sender in Resend |
 
 > **Important:** On Vercel, `AUTH_URL` and `NEXTAUTH_URL` must be your **production domain**, not `localhost`.
 
