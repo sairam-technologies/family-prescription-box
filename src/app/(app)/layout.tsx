@@ -11,7 +11,7 @@ export default async function DashboardLayout({
 }) {
   const session = await auth();
   if (!session?.user?.id) {
-    redirect(`/api/auth/signout?callbackUrl=${encodeURIComponent("/login")}`);
+    redirect("/login");
   }
 
   const user = await prisma.user.findUnique({

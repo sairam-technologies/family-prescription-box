@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { getMiddlewareAuthToken } from "@/lib/middleware-auth";
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({
-    req: request,
-    secret: process.env.AUTH_SECRET,
-  });
+  const token = await getMiddlewareAuthToken(request);
 
   const pathname = request.nextUrl.pathname;
   const isAuthPage =
@@ -16,8 +13,6 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/reset-password") ||
     pathname === "/~offline";
 
-  // Legacy sessions may lack isApproved; treat missing as approved so existing
-  // users are not forced to re-login until the token is refreshed.
   const canAccessApp =
     !!token?.id && token.isApproved !== false;
 
