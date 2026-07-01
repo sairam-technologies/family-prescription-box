@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Users, FileText, Pill, Copy, Check, Share2, Loader2 } from "lucide-react";
+import { Users, FileText, Pill, Copy, Check, Share2, Loader2, ChevronDown, Files, Activity } from "lucide-react";
 import { useState } from "react";
 import { Card, CardTitle } from "@/components/ui/Card";
-import { formatMemberSubtitle } from "@/lib/utils";
+import { formatMemberSubtitle, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { DeleteMemberButton } from "@/components/DeleteMemberButton";
@@ -22,6 +22,8 @@ interface DashboardHeaderProps {
     members: number;
     prescriptions: number;
     medicines: number;
+    documents: number;
+    medicalReports: number;
   };
 }
 
@@ -39,6 +41,7 @@ export function DashboardHeader({
   const [phoneError, setPhoneError] = useState("");
   const [phoneSuccess, setPhoneSuccess] = useState("");
   const [sendingInvite, setSendingInvite] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   function handlePhoneChange(value: string) {
     setPhoneError("");
@@ -119,84 +122,107 @@ export function DashboardHeader({
           </p>
         </div>
         <Card className="bg-teal-50/50 py-3">
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Family invite
-                </p>
-                <p className="font-mono text-lg font-bold text-teal-700">
+          <button
+            type="button"
+            onClick={() => setInviteOpen((open) => !open)}
+            className="flex w-full items-center justify-between gap-3 text-left"
+            aria-expanded={inviteOpen}
+          >
+            <div className="min-w-0">
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                Family invite
+              </p>
+              {!inviteOpen && (
+                <p className="mt-0.5 font-mono text-sm font-bold text-teal-700">
                   {inviteCode}
                 </p>
-                <p className="mt-1 max-w-md truncate text-xs text-slate-500">
-                  {inviteUrl}
+              )}
+            </div>
+            <ChevronDown
+              className={cn(
+                "h-5 w-5 shrink-0 text-slate-500 transition-transform duration-200",
+                inviteOpen && "rotate-180"
+              )}
+            />
+          </button>
+
+          {inviteOpen && (
+            <div className="mt-4 flex flex-col gap-4 border-t border-teal-100 pt-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="font-mono text-lg font-bold text-teal-700">
+                    {inviteCode}
+                  </p>
+                  <p className="mt-1 max-w-md truncate text-xs text-slate-500">
+                    {inviteUrl}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="secondary" size="sm" onClick={copyCode}>
+                    {copiedCode ? (
+                      <Check className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                    {copiedCode ? "Copied" : "Copy code"}
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={copyInviteLink}>
+                    {copiedLink ? (
+                      <Check className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <Share2 className="h-4 w-4" />
+                    )}
+                    {copiedLink ? "Copied" : "Copy link"}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="border-t border-teal-100 pt-3">
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+                  Send invite on WhatsApp
+                </p>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Input
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(event) => handlePhoneChange(event.target.value)}
+                    placeholder="9876543210"
+                    className="bg-white sm:max-w-xs"
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        void sendWhatsAppInvite();
+                      }
+                    }}
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => void sendWhatsAppInvite()}
+                    disabled={sendingInvite}
+                  >
+                    {sendingInvite ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : null}
+                    {sendingInvite ? "Sending..." : "Send invite"}
+                  </Button>
+                </div>
+                {phoneError && (
+                  <p className="mt-2 text-sm text-red-600">{phoneError}</p>
+                )}
+                {phoneSuccess && (
+                  <p className="mt-2 text-sm text-green-700">{phoneSuccess}</p>
+                )}
+                <p className="mt-2 text-xs text-slate-500">
+                  Sends the invite directly on WhatsApp using your Business API
+                  account — no chat window opens.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Button variant="secondary" size="sm" onClick={copyCode}>
-                  {copiedCode ? (
-                    <Check className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                  {copiedCode ? "Copied" : "Copy code"}
-                </Button>
-                <Button variant="secondary" size="sm" onClick={copyInviteLink}>
-                  {copiedLink ? (
-                    <Check className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <Share2 className="h-4 w-4" />
-                  )}
-                  {copiedLink ? "Copied" : "Copy link"}
-                </Button>
-              </div>
             </div>
-
-            <div className="border-t border-teal-100 pt-3">
-              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">
-                Send invite on WhatsApp
-              </p>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Input
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(event) => handlePhoneChange(event.target.value)}
-                  placeholder="9876543210"
-                  className="bg-white sm:max-w-xs"
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
-                      void sendWhatsAppInvite();
-                    }
-                  }}
-                />
-                <Button
-                  size="sm"
-                  onClick={() => void sendWhatsAppInvite()}
-                  disabled={sendingInvite}
-                >
-                  {sendingInvite ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : null}
-                  {sendingInvite ? "Sending..." : "Send invite"}
-                </Button>
-              </div>
-              {phoneError && (
-                <p className="mt-2 text-sm text-red-600">{phoneError}</p>
-              )}
-              {phoneSuccess && (
-                <p className="mt-2 text-sm text-green-700">{phoneSuccess}</p>
-              )}
-              <p className="mt-2 text-xs text-slate-500">
-                Sends the invite directly on WhatsApp using your Business API
-                account — no chat window opens.
-              </p>
-            </div>
-          </div>
+          )}
         </Card>
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <Card className="flex items-center gap-4">
           <div className="rounded-xl bg-blue-50 p-3">
             <Users className="h-5 w-5 text-blue-600" />
@@ -217,7 +243,33 @@ export function DashboardHeader({
             <p className="text-sm text-slate-500">Prescriptions</p>
           </div>
         </Card>
-        <Card className="flex items-center gap-4">
+        <Link href="/documents">
+          <Card className="flex items-center gap-4 transition-colors hover:border-teal-200 hover:bg-teal-50/30">
+            <div className="rounded-xl bg-amber-50 p-3">
+              <Files className="h-5 w-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-slate-900">
+                {stats.documents}
+              </p>
+              <p className="text-sm text-slate-500">Documents</p>
+            </div>
+          </Card>
+        </Link>
+        <Link href="/medical-reports">
+          <Card className="flex items-center gap-4 transition-colors hover:border-teal-200 hover:bg-teal-50/30">
+            <div className="rounded-xl bg-rose-50 p-3">
+              <Activity className="h-5 w-5 text-rose-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-slate-900">
+                {stats.medicalReports}
+              </p>
+              <p className="text-sm text-slate-500">Lab reports</p>
+            </div>
+          </Card>
+        </Link>
+        <Card className="col-span-2 flex items-center gap-4 sm:col-span-1">
           <div className="rounded-xl bg-violet-50 p-3">
             <Pill className="h-5 w-5 text-violet-600" />
           </div>

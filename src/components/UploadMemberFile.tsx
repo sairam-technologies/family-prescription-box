@@ -31,7 +31,7 @@ interface UploadMemberFileProps {
   compressImages?: boolean;
   loadingMessage: string;
   loadingHint?: string;
-  redirectPath: (result: { id: string }) => string;
+  redirectBasePath: string;
   extraFields?: SelectField[];
   optionalTitle?: boolean;
   optionalNotes?: boolean;
@@ -46,7 +46,7 @@ export function UploadMemberFile({
   compressImages = true,
   loadingMessage,
   loadingHint,
-  redirectPath,
+  redirectBasePath,
   extraFields = [],
   optionalTitle = false,
   optionalNotes = false,
@@ -116,7 +116,7 @@ export function UploadMemberFile({
       setPreview(null);
       setTitleValue("");
       setNotes("");
-      router.push(redirectPath(result));
+      router.push(`${redirectBasePath}/${result.id}`);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");

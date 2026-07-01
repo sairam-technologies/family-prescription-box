@@ -27,7 +27,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <AppShell familyName={user.family.name}>
+    <AppShell familyName={user.family.name} userName={session.user.name}>
       {children}
     </AppShell>
   );

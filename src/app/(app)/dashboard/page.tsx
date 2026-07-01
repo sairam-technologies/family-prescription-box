@@ -1,6 +1,10 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getAppBaseUrl } from "@/lib/app-url";
+import {
+  countFamilyDocuments,
+  countFamilyMedicalReports,
+} from "@/lib/member-records-page";
 import { redirect } from "next/navigation";
 import { DashboardHeader, MemberCard } from "@/components/Dashboard";
 import { AddMemberForm } from "@/components/AddMemberForm";
@@ -45,6 +49,11 @@ export default async function DashboardPage() {
     },
   });
 
+  const [documentCount, reportCount] = await Promise.all([
+    countFamilyDocuments(session.user.familyId),
+    countFamilyMedicalReports(session.user.familyId),
+  ]);
+
   const appBaseUrl = await getAppBaseUrl();
 
   return (
@@ -63,6 +72,8 @@ export default async function DashboardPage() {
             },
           }),
           medicines: medicineCount,
+          documents: documentCount,
+          medicalReports: reportCount,
         }}
       />
 

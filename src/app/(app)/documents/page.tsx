@@ -1,8 +1,8 @@
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
+import { requireFamilySession } from "@/lib/family-session";
+import { loadDocumentsPageData } from "@/lib/member-records-page";
 import { DocumentListItem } from "@/components/MemberRecords";
 import { UploadMemberFile } from "@/components/UploadMemberFile";
+import { DbSetupNotice } from "@/components/DbSetupNotice";
 import { DOCUMENT_CATEGORY_LABELS } from "@/lib/record-labels";
 
 export default async function DocumentsPage({
@@ -10,27 +10,13 @@ export default async function DocumentsPage({
 }: {
   searchParams: Promise<{ memberId?: string }>;
 }) {
-  const session = await auth();
-  if (!session?.user) redirect("/login");
-
+  const { familyId } = await requireFamilySession();
   const { memberId } = await searchParams;
 
-  const [members, documents] = await Promise.all([
-    prisma.familyMember.findMany({
-      where: { familyId: session.user.familyId },
-      orderBy: { createdAt: "asc" },
-    }),
-    prisma.memberDocument.findMany({
-      where: {
-        familyMember: {
-          familyId: session.user.familyId,
-          ...(memberId ? { id: memberId } : {}),
-        },
-      },
-      include: { familyMember: { select: { id: true, name: true } } },
-      orderBy: { createdAt: "desc" },
-    }),
-  ]);
+  const { schemaReady, members, documents } = await loadDocumentsPageData(
+    familyId,
+    memberId
+  );
 
   const categoryOptions = Object.entries(DOCUMENT_CATEGORY_LABELS).map(
     ([value, label]) => ({ value, label })
@@ -44,6 +30,12 @@ export default async function DocumentsPage({
           Store invoices, bills, receipts, and insurance papers — no AI scanning.
         </p>
       </div>
+
+      {!schemaReady && (
+        <div className="mb-6">
+          <DbSetupNotice feature="documents and medical reports" />
+        </div>
+      )}
 
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
@@ -67,7 +59,7 @@ export default async function DocumentsPage({
           )}
         </div>
 
-        {members.length > 0 && (
+        {members.length > 0 && schemaReady && (
           <UploadMemberFile
             title="Upload document"
             endpoint="/api/documents"
@@ -76,7 +68,7 @@ export default async function DocumentsPage({
             accept="image/*,application/pdf"
             compressImages
             loadingMessage="Uploading document..."
-            redirectPath={(result) => `/documents/${result.id}`}
+            redirectBasePath="/documents"
             optionalTitle
             optionalNotes
             extraFields={[

@@ -1,6 +1,6 @@
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { redirect, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
+import { requireFamilySession } from "@/lib/family-session";
+import { getMemberDocumentForFamily } from "@/lib/member-records";
 import { DocumentDetail } from "@/components/DocumentDetail";
 
 export default async function DocumentDetailPage({
@@ -8,20 +8,10 @@ export default async function DocumentDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await auth();
-  if (!session?.user) redirect("/login");
-
+  const { familyId } = await requireFamilySession();
   const { id } = await params;
 
-  const document = await prisma.memberDocument.findFirst({
-    where: {
-      id,
-      familyMember: { familyId: session.user.familyId },
-    },
-    include: {
-      familyMember: { select: { id: true, name: true } },
-    },
-  });
+  const document = await getMemberDocumentForFamily(id, familyId);
 
   if (!document) notFound();
 

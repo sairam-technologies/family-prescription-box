@@ -1,6 +1,6 @@
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { redirect, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
+import { requireFamilySession } from "@/lib/family-session";
+import { getMedicalReportForFamily } from "@/lib/member-records";
 import { MedicalReportDetail } from "@/components/MedicalReportDetail";
 
 export default async function MedicalReportDetailPage({
@@ -8,20 +8,10 @@ export default async function MedicalReportDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await auth();
-  if (!session?.user) redirect("/login");
-
+  const { familyId } = await requireFamilySession();
   const { id } = await params;
 
-  const report = await prisma.medicalReport.findFirst({
-    where: {
-      id,
-      familyMember: { familyId: session.user.familyId },
-    },
-    include: {
-      familyMember: { select: { id: true, name: true } },
-    },
-  });
+  const report = await getMedicalReportForFamily(id, familyId);
 
   if (!report) notFound();
 
