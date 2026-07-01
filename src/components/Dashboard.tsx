@@ -12,6 +12,39 @@ import { buildFamilyInviteUrl } from "@/lib/invite-links";
 
 const WHATSAPP_PHONE_PREFIX = "+91 ";
 
+function StatCard({
+  value,
+  label,
+  icon,
+  iconClassName,
+  className,
+}: {
+  value: number;
+  label: string;
+  icon: React.ReactNode;
+  iconClassName: string;
+  className?: string;
+}) {
+  return (
+    <Card
+      className={cn(
+        "flex min-w-0 flex-col gap-2 p-3 sm:flex-row sm:items-center sm:gap-3 sm:p-4",
+        className
+      )}
+    >
+      <div className={cn("w-fit shrink-0 rounded-xl p-2 sm:p-3", iconClassName)}>
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className="text-xl font-bold tabular-nums text-slate-900 sm:text-2xl">
+          {value}
+        </p>
+        <p className="text-xs leading-snug text-slate-500 sm:text-sm">{label}</p>
+      </div>
+    </Card>
+  );
+}
+
 interface DashboardHeaderProps {
   familyName: string;
   inviteCode: string;
@@ -106,22 +139,22 @@ export function DashboardHeader({
   return (
     <div className="mb-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+        <div className="min-w-0">
           <p className="text-sm font-medium text-teal-600">Welcome back</p>
-          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
+          <h1 className="break-words text-2xl font-bold text-slate-900 sm:text-3xl">
             {familyName}
           </h1>
-          <p className="mt-1 text-slate-500">
+          <p className="mt-1 break-words text-sm text-slate-500">
             Signed in as {userName}
             {isPrimary && (
-              <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+              <span className="ml-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
                 Primary
               </span>
             )}
             {" · "}Shared family dashboard
           </p>
         </div>
-        <Card className="bg-teal-50/50 py-3">
+        <Card className="w-full min-w-0 bg-teal-50/50 py-3 sm:max-w-md">
           <button
             type="button"
             onClick={() => setInviteOpen((open) => !open)}
@@ -153,7 +186,7 @@ export function DashboardHeader({
                   <p className="font-mono text-lg font-bold text-teal-700">
                     {inviteCode}
                   </p>
-                  <p className="mt-1 max-w-md truncate text-xs text-slate-500">
+                  <p className="mt-1 break-all text-xs text-slate-500">
                     {inviteUrl}
                   </p>
                 </div>
@@ -222,64 +255,44 @@ export function DashboardHeader({
         </Card>
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        <Card className="flex items-center gap-4">
-          <div className="rounded-xl bg-blue-50 p-3">
-            <Users className="h-5 w-5 text-blue-600" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-slate-900">{stats.members}</p>
-            <p className="text-sm text-slate-500">Family members</p>
-          </div>
-        </Card>
-        <Card className="flex items-center gap-4">
-          <div className="rounded-xl bg-teal-50 p-3">
-            <FileText className="h-5 w-5 text-teal-600" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-slate-900">
-              {stats.prescriptions}
-            </p>
-            <p className="text-sm text-slate-500">Prescriptions</p>
-          </div>
-        </Card>
-        <Link href="/documents">
-          <Card className="flex items-center gap-4 transition-colors hover:border-teal-200 hover:bg-teal-50/30">
-            <div className="rounded-xl bg-amber-50 p-3">
-              <Files className="h-5 w-5 text-amber-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-900">
-                {stats.documents}
-              </p>
-              <p className="text-sm text-slate-500">Documents</p>
-            </div>
-          </Card>
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
+        <StatCard
+          value={stats.members}
+          label="Members"
+          icon={<Users className="h-5 w-5 text-blue-600" />}
+          iconClassName="bg-blue-50"
+        />
+        <StatCard
+          value={stats.prescriptions}
+          label="Prescriptions"
+          icon={<FileText className="h-5 w-5 text-teal-600" />}
+          iconClassName="bg-teal-50"
+        />
+        <Link href="/documents" className="min-w-0">
+          <StatCard
+            value={stats.documents}
+            label="Documents"
+            icon={<Files className="h-5 w-5 text-amber-600" />}
+            iconClassName="bg-amber-50"
+            className="h-full transition-colors hover:border-teal-200 hover:bg-teal-50/30"
+          />
         </Link>
-        <Link href="/medical-reports">
-          <Card className="flex items-center gap-4 transition-colors hover:border-teal-200 hover:bg-teal-50/30">
-            <div className="rounded-xl bg-rose-50 p-3">
-              <Activity className="h-5 w-5 text-rose-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-900">
-                {stats.medicalReports}
-              </p>
-              <p className="text-sm text-slate-500">Lab reports</p>
-            </div>
-          </Card>
+        <Link href="/medical-reports" className="min-w-0">
+          <StatCard
+            value={stats.medicalReports}
+            label="Lab reports"
+            icon={<Activity className="h-5 w-5 text-rose-600" />}
+            iconClassName="bg-rose-50"
+            className="h-full transition-colors hover:border-teal-200 hover:bg-teal-50/30"
+          />
         </Link>
-        <Card className="col-span-2 flex items-center gap-4 sm:col-span-1">
-          <div className="rounded-xl bg-violet-50 p-3">
-            <Pill className="h-5 w-5 text-violet-600" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-slate-900">
-              {stats.medicines}
-            </p>
-            <p className="text-sm text-slate-500">Medicines tracked</p>
-          </div>
-        </Card>
+        <StatCard
+          value={stats.medicines}
+          label="Medicines"
+          icon={<Pill className="h-5 w-5 text-violet-600" />}
+          iconClassName="bg-violet-50"
+          className="col-span-2 sm:col-span-1"
+        />
       </div>
     </div>
   );
@@ -303,15 +316,15 @@ export function MemberCard({
   canDelete,
 }: MemberCardProps) {
   return (
-    <Card className="group transition-all hover:border-teal-200 hover:shadow-md">
-      <div className="flex items-center gap-4">
-        <Link href={`/members/${id}`} className="flex min-w-0 flex-1 items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-teal-500 to-teal-600 text-lg font-bold text-white">
+    <Card className="group min-w-0 transition-all hover:border-teal-200 hover:shadow-md">
+      <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+        <Link href={`/members/${id}`} className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-teal-500 to-teal-600 text-base font-bold text-white sm:h-12 sm:w-12 sm:text-lg">
             {name.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
-            <CardTitle className="group-hover:text-teal-700">{name}</CardTitle>
-            <p className="text-sm text-slate-500">
+            <CardTitle className="line-clamp-2 group-hover:text-teal-700">{name}</CardTitle>
+            <p className="truncate text-sm text-slate-500">
               {formatMemberSubtitle(relationship, dateOfBirth)}
             </p>
           </div>
@@ -319,7 +332,7 @@ export function MemberCard({
             <p className="text-lg font-bold text-slate-900">
               {prescriptionCount}
             </p>
-            <p className="text-xs text-slate-500">prescriptions</p>
+            <p className="text-[10px] text-slate-500 sm:text-xs">Rx</p>
           </div>
         </Link>
         {canDelete && (

@@ -57,9 +57,9 @@ export function PrescriptionListItem({
   };
 
   return (
-    <Link href={`/prescriptions/${id}`}>
-      <Card className="group flex gap-4 transition-all hover:border-teal-200 hover:shadow-md">
-        <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+    <Link href={`/prescriptions/${id}`} className="block min-w-0">
+      <Card className="group flex min-w-0 gap-3 transition-all hover:border-teal-200 hover:shadow-md sm:gap-4">
+        <div className="relative h-16 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100 sm:h-20 sm:w-16">
           <PrescriptionImage
             src={imageUrl}
             alt="Prescription"
@@ -69,16 +69,16 @@ export function PrescriptionListItem({
           />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <CardTitle className="group-hover:text-teal-700">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-2">
+            <div className="min-w-0">
+              <CardTitle className="line-clamp-2 group-hover:text-teal-700">
                 {doctorName || "Unknown Doctor"}
               </CardTitle>
-              <p className="text-sm text-teal-600">{memberName}</p>
+              <p className="truncate text-sm text-teal-600">{memberName}</p>
             </div>
             <span
               className={cn(
-                "shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
+                "w-fit shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
                 statusColors[scanStatus as keyof typeof statusColors] ||
                   statusColors.PENDING
               )}
@@ -86,14 +86,14 @@ export function PrescriptionListItem({
               {scanStatus.toLowerCase()}
             </span>
           </div>
-          <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
+          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
             {clinicName && (
-              <span className="flex items-center gap-1">
-                <Building2 className="h-3 w-3" />
-                {clinicName}
+              <span className="flex min-w-0 max-w-full items-start gap-1 break-words">
+                <Building2 className="mt-0.5 h-3 w-3 shrink-0" />
+                <span className="min-w-0 break-words">{clinicName}</span>
               </span>
             )}
-            <span className="flex items-center gap-1">
+            <span className="flex shrink-0 items-center gap-1">
               <Calendar className="h-3 w-3" />
               {formatDate(prescriptionDate)}
             </span>
@@ -103,7 +103,7 @@ export function PrescriptionListItem({
               medicines.map((med, index) => (
                 <span
                   key={med.id ?? `${med.name}-${index}`}
-                  className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700"
+                  className="max-w-full break-words rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700"
                 >
                   {med.name}
                 </span>
@@ -415,7 +415,7 @@ export function MedicineList({
               ) : (
                 <>
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-semibold text-slate-900">{med.name}</p>
+                    <p className="break-words font-semibold text-slate-900">{med.name}</p>
                     {validation && style && StatusIcon && (
                       <span
                         className={cn(
@@ -565,22 +565,22 @@ export function PrescriptionMeta({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex items-start gap-3">
           <Stethoscope className="mt-0.5 h-5 w-5 text-teal-600" />
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-medium uppercase text-slate-500">
               Doctor
             </p>
-            <p className="font-medium text-slate-900">
+            <p className="font-medium break-words text-slate-900">
               {doctorName || "Not detected"}
             </p>
           </div>
         </div>
         <div className="flex items-start gap-3">
           <Building2 className="mt-0.5 h-5 w-5 text-teal-600" />
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-medium uppercase text-slate-500">
               Clinic
             </p>
-            <p className="font-medium text-slate-900">
+            <p className="font-medium break-words text-slate-900">
               {clinicName || "Not detected"}
             </p>
           </div>
@@ -606,7 +606,7 @@ export function PrescriptionMeta({
           <p className="text-xs font-medium uppercase text-slate-500">
             Diagnosis
           </p>
-          <p className="mt-1 text-slate-700">{diagnosis}</p>
+          <p className="mt-1 break-words text-slate-700">{diagnosis}</p>
         </div>
       )}
     </Card>

@@ -199,7 +199,7 @@ export function AppShell({
       </aside>
 
       {/* Main column */}
-      <div className="lg:pl-72">
+      <div className="min-w-0 flex-1 overflow-x-hidden lg:pl-72">
         {/* Mobile top bar */}
         <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-md lg:hidden">
           <div className="flex items-center gap-3 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
@@ -230,8 +230,8 @@ export function AppShell({
           </h1>
         </header>
 
-        <main className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-          <div className="mx-auto max-w-5xl">{children}</div>
+        <main className="min-w-0 overflow-x-hidden px-4 py-6 sm:px-6 lg:px-8 lg:py-8 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+          <div className="mx-auto min-w-0 max-w-5xl">{children}</div>
         </main>
       </div>
     </div>

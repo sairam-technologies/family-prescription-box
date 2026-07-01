@@ -37,8 +37,8 @@ export function DocumentListItem({
   const label = DOCUMENT_CATEGORY_LABELS[category] ?? category;
 
   return (
-    <Link href={`/documents/${id}`}>
-      <Card className="group flex gap-4 transition-all hover:border-teal-200 hover:shadow-md">
+    <Link href={`/documents/${id}`} className="block min-w-0">
+      <Card className="group flex min-w-0 gap-3 transition-all hover:border-teal-200 hover:shadow-md sm:gap-4">
         <div className="relative flex h-20 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-100">
           {isPdf ? (
             <FileText className="h-8 w-8 text-slate-500" />
@@ -53,10 +53,10 @@ export function DocumentListItem({
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <CardTitle className="group-hover:text-teal-700">
+          <CardTitle className="line-clamp-2 group-hover:text-teal-700">
             {title || "Untitled document"}
           </CardTitle>
-          <p className="text-sm text-teal-600">{memberName}</p>
+          <p className="truncate text-sm text-teal-600">{memberName}</p>
           <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-500">
             <span className="rounded-full bg-slate-100 px-2 py-0.5 font-medium text-slate-700">
               {label}
@@ -106,8 +106,8 @@ export function MedicalReportListItem({
   };
 
   return (
-    <Link href={`/medical-reports/${id}`}>
-      <Card className="group flex gap-4 transition-all hover:border-teal-200 hover:shadow-md">
+    <Link href={`/medical-reports/${id}`} className="block min-w-0">
+      <Card className="group flex min-w-0 gap-3 transition-all hover:border-teal-200 hover:shadow-md sm:gap-4">
         <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
           <PrescriptionImage
             src={imageUrl}
@@ -118,12 +118,12 @@ export function MedicalReportListItem({
           />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <CardTitle className="group-hover:text-teal-700">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-2">
+            <div className="min-w-0">
+              <CardTitle className="line-clamp-2 group-hover:text-teal-700">
                 {title || "Medical report"}
               </CardTitle>
-              <p className="text-sm text-teal-600">{memberName}</p>
+              <p className="truncate text-sm text-teal-600">{memberName}</p>
             </div>
             <span
               className={cn(
@@ -186,11 +186,11 @@ export function RecordSectionLinks({
     <div className="grid gap-3 sm:grid-cols-2">
       <Link
         href={`/documents?memberId=${memberId}`}
-        className="rounded-2xl border border-slate-200 bg-white p-4 transition-colors hover:border-teal-200 hover:bg-teal-50/40"
+        className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 transition-colors hover:border-teal-200 hover:bg-teal-50/40"
       >
-        <div className="flex items-center gap-3">
-          <FileText className="h-5 w-5 text-slate-600" />
-          <div>
+        <div className="flex min-w-0 items-center gap-3">
+          <FileText className="h-5 w-5 shrink-0 text-slate-600" />
+          <div className="min-w-0">
             <p className="font-medium text-slate-900">Bills & documents</p>
             <p className="text-sm text-slate-500">{documentCount} stored</p>
           </div>
@@ -198,13 +198,15 @@ export function RecordSectionLinks({
       </Link>
       <Link
         href={`/medical-reports?memberId=${memberId}`}
-        className="rounded-2xl border border-slate-200 bg-white p-4 transition-colors hover:border-teal-200 hover:bg-teal-50/40"
+        className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 transition-colors hover:border-teal-200 hover:bg-teal-50/40"
       >
-        <div className="flex items-center gap-3">
-          <Activity className="h-5 w-5 text-slate-600" />
-          <div>
+        <div className="flex min-w-0 items-center gap-3">
+          <Activity className="h-5 w-5 shrink-0 text-slate-600" />
+          <div className="min-w-0">
             <p className="font-medium text-slate-900">Medical reports</p>
-            <p className="text-sm text-slate-500">{reportCount} with AI insights</p>
+            <p className="truncate text-sm text-slate-500">
+              {reportCount} with AI insights
+            </p>
           </div>
         </div>
       </Link>
