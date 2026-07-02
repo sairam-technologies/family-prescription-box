@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionFamilyId, unauthorized } from "@/lib/session";
 import { buildMemberDocumentKey, uploadToR2 } from "@/lib/r2";
 import { getFamilyMemberOrNull } from "@/lib/member-records";
+import { resolveUploadContentType } from "@/lib/file-types";
 import type { DocumentCategory } from "@/generated/prisma/client";
 
 export const maxDuration = 60;
@@ -80,16 +81,13 @@ export async function POST(request: Request) {
       : "OTHER";
 
     const buffer = Buffer.from(await file.arrayBuffer());
+    const contentType = resolveUploadContentType(file);
     const storageKey = buildMemberDocumentKey(
       user.familyId,
       memberId,
       file.name
     );
-    const { url: fileUrl } = await uploadToR2(
-      storageKey,
-      buffer,
-      file.type || "application/octet-stream"
-    );
+    const { url: fileUrl } = await uploadToR2(storageKey, buffer, contentType);
 
     const document = await prisma.memberDocument.create({
       data: {
@@ -99,7 +97,7 @@ export async function POST(request: Request) {
         fileUrl,
         fileName: file.name,
         storageKey,
-        mimeType: file.type || null,
+        mimeType: contentType,
         notes: notes || null,
       },
       include: {

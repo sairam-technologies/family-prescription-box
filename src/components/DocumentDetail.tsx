@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { PrescriptionImage } from "@/components/PrescriptionImage";
+import { MemberFileViewer } from "@/components/MemberFileViewer";
 import { formatDate } from "@/lib/utils";
 import { DOCUMENT_CATEGORY_LABELS } from "@/lib/record-labels";
 
@@ -25,9 +25,6 @@ interface DocumentDetailProps {
 
 export function DocumentDetail({ document }: DocumentDetailProps) {
   const router = useRouter();
-  const isPdf =
-    document.mimeType === "application/pdf" ||
-    document.fileUrl.endsWith(".pdf");
 
   async function handleDelete() {
     if (!confirm("Delete this document? This cannot be undone.")) return;
@@ -65,24 +62,13 @@ export function DocumentDetail({ document }: DocumentDetailProps) {
 
       <div className="grid gap-8 lg:grid-cols-2">
         <Card className="overflow-hidden p-0">
-          {isPdf ? (
-            <iframe
-              src={document.fileUrl}
-              title={document.title || "Document"}
-              className="h-[70vh] w-full"
-            />
-          ) : (
-            <div className="relative aspect-[3/4] w-full bg-slate-100">
-              <PrescriptionImage
-                src={document.fileUrl}
-                alt={document.title || "Document"}
-                fill
-                className="object-contain"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                priority
-              />
-            </div>
-          )}
+          <MemberFileViewer
+            src={document.fileUrl}
+            alt={document.title || "Document"}
+            mimeType={document.mimeType}
+            fileName={document.fileName}
+            priority
+          />
         </Card>
 
         <div className="space-y-4">

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FileText, Calendar, Activity } from "lucide-react";
 import { Card, CardTitle } from "@/components/ui/Card";
-import { PrescriptionImage } from "@/components/PrescriptionImage";
+import { MemberFileThumbnail } from "@/components/MemberFileViewer";
 import { formatDate, cn } from "@/lib/utils";
 import {
   DOCUMENT_CATEGORY_LABELS,
@@ -19,6 +19,7 @@ interface DocumentListItemProps {
   title?: string | null;
   category: string;
   fileUrl: string;
+  fileName?: string | null;
   mimeType?: string | null;
   memberName: string;
   createdAt?: string | null;
@@ -29,29 +30,23 @@ export function DocumentListItem({
   title,
   category,
   fileUrl,
+  fileName,
   mimeType,
   memberName,
   createdAt,
 }: DocumentListItemProps) {
-  const isPdf = mimeType === "application/pdf" || fileUrl.endsWith(".pdf");
   const label = DOCUMENT_CATEGORY_LABELS[category] ?? category;
 
   return (
     <Link href={`/documents/${id}`} className="block min-w-0">
       <Card className="group flex min-w-0 gap-3 transition-all hover:border-teal-200 hover:shadow-md sm:gap-4">
-        <div className="relative flex h-20 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-100">
-          {isPdf ? (
-            <FileText className="h-8 w-8 text-slate-500" />
-          ) : (
-            <PrescriptionImage
-              src={fileUrl}
-              alt={title || "Document"}
-              fill
-              className="object-cover"
-              sizes="64px"
-            />
-          )}
-        </div>
+        <MemberFileThumbnail
+          src={fileUrl}
+          alt={title || "Document"}
+          mimeType={mimeType}
+          fileName={fileName}
+          className="h-20 w-16 shrink-0 rounded-lg"
+        />
         <div className="min-w-0 flex-1">
           <CardTitle className="line-clamp-2 group-hover:text-teal-700">
             {title || "Untitled document"}
@@ -108,15 +103,11 @@ export function MedicalReportListItem({
   return (
     <Link href={`/medical-reports/${id}`} className="block min-w-0">
       <Card className="group flex min-w-0 gap-3 transition-all hover:border-teal-200 hover:shadow-md sm:gap-4">
-        <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
-          <PrescriptionImage
-            src={imageUrl}
-            alt={title || "Medical report"}
-            fill
-            className="object-cover"
-            sizes="64px"
-          />
-        </div>
+        <MemberFileThumbnail
+          src={imageUrl}
+          alt={title || "Medical report"}
+          className="h-20 w-16 shrink-0 rounded-lg"
+        />
         <div className="min-w-0 flex-1">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-2">
             <div className="min-w-0">

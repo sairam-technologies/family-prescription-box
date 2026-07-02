@@ -51,6 +51,7 @@ export default async function DocumentsPage({
                 title={doc.title}
                 category={doc.category}
                 fileUrl={doc.fileUrl}
+                fileName={doc.fileName}
                 mimeType={doc.mimeType}
                 memberName={doc.familyMember.name}
                 createdAt={doc.createdAt.toISOString()}

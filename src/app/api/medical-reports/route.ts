@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionFamilyId, unauthorized } from "@/lib/session";
 import { buildMedicalReportKey, uploadToR2, getFromR2 } from "@/lib/r2";
 import { getFamilyMemberOrNull } from "@/lib/member-records";
+import { resolveUploadContentType } from "@/lib/file-types";
 import { scanMedicalReportImage } from "@/lib/ai/scan-medical-report";
 import { medicalReportScanToDbFields } from "@/lib/medical-report-db";
 import { formatGeminiError } from "@/lib/ai";
@@ -77,16 +78,13 @@ export async function POST(request: Request) {
       : "OTHER";
 
     const buffer = Buffer.from(await file.arrayBuffer());
+    const contentType = resolveUploadContentType(file);
     const storageKey = buildMedicalReportKey(
       user.familyId,
       memberId,
       file.name
     );
-    const { url: imageUrl } = await uploadToR2(
-      storageKey,
-      buffer,
-      file.type || "image/jpeg"
-    );
+    const { url: imageUrl } = await uploadToR2(storageKey, buffer, contentType);
 
     const report = await prisma.medicalReport.create({
       data: {
@@ -101,7 +99,7 @@ export async function POST(request: Request) {
     });
 
     try {
-      const dataUrl = `data:${file.type || "image/jpeg"};base64,${buffer.toString("base64")}`;
+      const dataUrl = `data:${contentType};base64,${buffer.toString("base64")}`;
       const scanned = await scanMedicalReportImage(dataUrl);
 
       const updated = await prisma.medicalReport.update({
